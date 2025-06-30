@@ -244,6 +244,7 @@ def create_job():
     job = {
         'title': data['title'],
         'description': data['description'],
+        'company_url': data.get('company_url', ''),
         'required_skills': data['required_skills'],
         'created_at': datetime.now().isoformat()
     }
@@ -308,6 +309,20 @@ def schedule_meeting():
     except Exception as e:
         print(f"[DEBUG] Exception: {e}")
         return jsonify({"status": "error", "detail": str(e)}), 500
+
+@app.route('/api/chatbot', methods=['POST'])
+def chatbot():
+    data = request.json
+    user_message = data.get('message', '')
+    jobs = data.get('jobs', [])
+    job_info = '\n'.join([f"- {job.get('title', 'N/A')} at {job.get('company_url', 'N/A')}" for job in jobs])
+    prompt = f"You are a helpful assistant for job candidates. Here are the current jobs and companies:\n{job_info}\n\nUser: {user_message}\nAssistant:"
+    try:
+        response = resume_service.model.generate_content(prompt)
+        answer = response.text.strip()
+    except Exception as e:
+        answer = f"Sorry, I couldn't get an answer right now. ({str(e)})"
+    return jsonify({'reply': answer})
 
 if __name__ == '__main__':
     app.run(debug=True) 

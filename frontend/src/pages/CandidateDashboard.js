@@ -17,7 +17,7 @@ import {
   BarElement,
   ArcElement,
 } from 'chart.js';
-import { resumeAPI, interviewAPI, candidateAPI, jobAPI } from '../services/api';
+import { resumeAPI, interviewAPI, candidateAPI, jobAPI, chatbotAPI } from '../services/api';
 import confetti from 'canvas-confetti';
 import { SignOutButton, useUser } from "@clerk/clerk-react";
 
@@ -47,6 +47,66 @@ function injectOmnidimensionWidget() {
 function removeOmnidimensionWidget() {
   const script = document.getElementById('omnidimension-web-widget');
   if (script) script.remove();
+}
+
+function ChatbotWidget({ jobs }) {
+  const [open, setOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { from: 'bot', text: 'Hi! I am your assistant. How can I help you today?' }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    setMessages([...messages, { from: 'user', text: input }]);
+    setInput('');
+    setLoading(true);
+    try {
+      const res = await chatbotAPI.sendMessage(input, jobs);
+      setMessages(msgs => [...msgs, { from: 'bot', text: res.data.reply }]);
+    } catch (e) {
+      setMessages(msgs => [...msgs, { from: 'bot', text: 'Sorry, there was an error.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ position: 'fixed', left: 24, bottom: 24, zIndex: 1000 }}>
+      {open ? (
+        <div className="bg-white shadow-lg rounded-lg w-80 h-96 flex flex-col">
+          <div className="flex justify-between items-center p-2 border-b">
+            <span className="font-bold">Chatbot</span>
+            <button onClick={() => setOpen(false)} className="text-gray-500">✕</button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            {messages.map((msg, idx) => (
+              <div key={idx} className={msg.from === 'bot' ? 'text-left' : 'text-right'}>
+                <span className={msg.from === 'bot' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}
+                  style={{ display: 'inline-block', borderRadius: 8, padding: '4px 8px', margin: '4px 0' }}>
+                  {msg.text}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="p-2 border-t flex">
+            <input
+              className="flex-1 border rounded px-2 py-1"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSend()}
+              placeholder="Type your message..."
+              disabled={loading}
+            />
+            <button onClick={handleSend} className="ml-2 bg-blue-600 text-white px-3 py-1 rounded" disabled={loading}>{loading ? '...' : 'Send'}</button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setOpen(true)} className="bg-blue-600 text-white rounded-full w-16 h-16 shadow-lg flex items-center justify-center text-2xl">💬</button>
+      )}
+    </div>
+  );
 }
 
 const CandidateDashboard = () => {
@@ -943,6 +1003,7 @@ const CandidateDashboard = () => {
           )}
         </div>
       </div>
+      <ChatbotWidget jobs={jobs} />
     </div>
   );
 };

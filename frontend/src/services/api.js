@@ -72,4 +72,8 @@ export const jobAPI = {
   get: (id) => api.get(`/jobs/${id}`),
 };
 
+export const chatbotAPI = {
+  sendMessage: (message, jobs = []) => api.post('/chatbot', { message, jobs }),
+};
+
 export default api; 

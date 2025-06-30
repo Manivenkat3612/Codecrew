@@ -33,7 +33,7 @@ const RecruiterDashboard = () => {
     zoom_link: ''
   });
   const [jobs, setJobs] = useState([]);
-  const [jobForm, setJobForm] = useState({ title: '', description: '', required_skills: [{ skill: '', weight: 1 }] });
+  const [jobForm, setJobForm] = useState({ title: '', description: '', company_url: '', required_skills: [{ skill: '', weight: 1 }] });
   const [jobSearch, setJobSearch] = useState("");
   const [jobSort, setJobSort] = useState("title");
   const [candidateSearch, setCandidateSearch] = useState("");
@@ -112,7 +112,7 @@ const RecruiterDashboard = () => {
     try {
       await jobAPI.create(jobForm);
       toast.success('Job created!');
-      setJobForm({ title: '', description: '', required_skills: [{ skill: '', weight: 1 }] });
+      setJobForm({ title: '', description: '', company_url: '', required_skills: [{ skill: '', weight: 1 }] });
       fetchJobs();
     } catch (e) {
       toast.error('Failed to create job');
@@ -362,6 +362,7 @@ const RecruiterDashboard = () => {
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h2 className="text-lg font-semibold mb-4">Post a New Job</h2>
             <input type="text" name="title" value={jobForm.title} onChange={handleJobFormChange} placeholder="Job Title" className="mb-2 w-full border px-2 py-1 rounded" />
+            <input type="text" name="company_url" value={jobForm.company_url} onChange={handleJobFormChange} placeholder="Company URL" className="mb-2 w-full border px-2 py-1 rounded" />
             <textarea name="description" value={jobForm.description} onChange={handleJobFormChange} placeholder="Job Description" className="mb-2 w-full border px-2 py-1 rounded" />
             <div>
               <h4 className="font-medium mb-2">Required Skills</h4>
